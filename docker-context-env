@@ -1,0 +1,19 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+
+CONTEXT=$1
+
+DOCKER_HOST="$(docker context inspect $CONTEXT -f '{{.Endpoints.docker.Host}}')"
+echo "export DOCKER_HOST=$DOCKER_HOST"
+
+if [ "$(docker context inspect $CONTEXT -f '{{.TLSMaterial}}')" = "map[]" ]
+then
+	unset DOCKER_TLS_VERIFY
+	unset DOCKER_CERT_PATH
+else
+	DOCKER_TLS_VERIFY=1
+	echo "export DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY"
+
+	DOCKER_CERT_PATH="$(docker context inspect $CONTEXT -f '{{.Storage.TLSPath}}')/docker"
+	echo "export DOCKER_CERT_PATH=$DOCKER_CERT_PATH"
+fi
